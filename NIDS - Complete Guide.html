@@ -1,0 +1,2041 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NIDS Windows — Every Single Step</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07090f;
+  --s1:#0d1017;
+  --s2:#131720;
+  --s3:#181d28;
+  --border:#1c2235;
+  --border2:#232a3e;
+  --text:#dde3f5;
+  --muted:#5a6380;
+  --muted2:#7a85a8;
+  --blue:#4c8cf8;
+  --purple:#8b5cf6;
+  --green:#34d399;
+  --amber:#fbbf24;
+  --red:#f87171;
+  --cyan:#22d3ee;
+  --pink:#f472b6;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;font-size:15px;line-height:1.65;}
+
+/* layout */
+.wrap{display:flex;min-height:100vh;}
+
+/* sidebar */
+aside{
+  width:280px;min-width:280px;
+  background:var(--s1);
+  border-right:1px solid var(--border);
+  position:sticky;top:0;height:100vh;overflow-y:auto;
+  display:flex;flex-direction:column;
+}
+.aside-top{padding:22px 18px 14px;border-bottom:1px solid var(--border);}
+.aside-logo{font-size:11px;letter-spacing:.1em;color:var(--blue);font-weight:600;text-transform:uppercase;margin-bottom:6px;}
+.aside-title{font-size:15px;font-weight:700;line-height:1.4;}
+.aside-sub{font-size:12px;color:var(--muted2);margin-top:4px;}
+
+.phase-list{flex:1;padding:10px 0;}
+.ph-item{
+  padding:9px 18px;cursor:pointer;
+  display:flex;align-items:center;gap:10px;
+  border-left:2px solid transparent;
+  transition:all .12s;
+}
+.ph-item:hover{background:var(--s2);color:var(--text);}
+.ph-item.active{border-left-color:var(--blue);background:rgba(76,140,248,.06);color:var(--text);}
+.ph-item .ph-num{
+  width:24px;height:24px;border-radius:6px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;flex-shrink:0;
+  font-family:'JetBrains Mono',monospace;
+}
+.ph-item .ph-label{font-size:12.5px;font-weight:600;color:var(--muted2);}
+.ph-item.active .ph-label,.ph-item:hover .ph-label{color:var(--text);}
+
+.aside-progress{padding:14px 18px;border-top:1px solid var(--border);}
+.prog-row{display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted2);margin-bottom:7px;}
+.prog-track{height:3px;background:var(--border2);border-radius:2px;overflow:hidden;}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--purple));border-radius:2px;transition:width .3s;}
+
+/* main */
+main{flex:1;min-width:0;}
+
+.topbar{
+  position:sticky;top:0;z-index:20;
+  background:var(--s1);border-bottom:1px solid var(--border);
+  padding:14px 36px;display:flex;align-items:center;gap:14px;
+}
+.tb-phase{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;border-radius:5px;font-family:'JetBrains Mono',monospace;}
+.tb-title{font-size:17px;font-weight:700;}
+.tb-count{margin-left:auto;font-size:12px;color:var(--muted2);}
+
+/* phase panels */
+.panel{display:none;padding:28px 36px 60px;}
+.panel.active{display:block;}
+
+/* phase hero */
+.ph-hero{
+  background:var(--s2);border:1px solid var(--border);
+  border-radius:12px;padding:22px 24px;margin-bottom:30px;
+  display:flex;gap:18px;align-items:flex-start;
+}
+.ph-hero .em{font-size:36px;flex-shrink:0;}
+.ph-hero h2{font-size:18px;font-weight:700;margin-bottom:6px;}
+.ph-hero p{font-size:13.5px;color:var(--muted2);line-height:1.6;}
+.ph-hero .pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
+.pill{font-size:11px;font-weight:600;padding:3px 9px;border-radius:4px;font-family:'JetBrains Mono',monospace;}
+
+/* ACTION STEP — the core component */
+.action{
+  display:flex;gap:0;margin-bottom:16px;
+  border:1px solid var(--border);border-radius:10px;
+  overflow:hidden;background:var(--s1);
+}
+.action-num{
+  width:48px;min-width:48px;
+  background:var(--s2);
+  display:flex;align-items:flex-start;justify-content:center;
+  padding-top:18px;
+  border-right:1px solid var(--border);
+  font-family:'JetBrains Mono',monospace;
+  font-size:13px;font-weight:500;color:var(--muted);
+}
+.action-body{flex:1;padding:16px 20px;}
+.action-tag{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:10.5px;font-weight:700;letter-spacing:.07em;
+  text-transform:uppercase;padding:2px 8px;border-radius:4px;
+  margin-bottom:10px;font-family:'JetBrains Mono',monospace;
+}
+.action-body h3{font-size:15px;font-weight:700;margin-bottom:8px;line-height:1.35;}
+.action-body p{font-size:13.5px;color:var(--muted2);margin-bottom:10px;line-height:1.65;}
+.action-body p:last-child{margin-bottom:0;}
+.action-body p strong{color:var(--text);font-weight:600;}
+
+/* where tag */
+.where{
+  display:inline-flex;align-items:center;gap:6px;
+  background:var(--s3);border:1px solid var(--border2);
+  border-radius:6px;padding:5px 10px;
+  font-size:12px;font-weight:600;color:var(--muted2);
+  margin-bottom:10px;
+}
+.where .dot{width:6px;height:6px;border-radius:50%;}
+
+/* code */
+.code-block{margin:10px 0;}
+.code-top{
+  display:flex;align-items:center;justify-content:space-between;
+  background:#0a0d14;border:1px solid var(--border);
+  border-bottom:none;border-radius:7px 7px 0 0;
+  padding:7px 14px;
+}
+.code-top span{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);}
+.copy-btn{
+  background:none;border:1px solid var(--border2);
+  color:var(--muted);padding:2px 9px;border-radius:4px;
+  font-size:11px;cursor:pointer;font-family:'JetBrains Mono',monospace;
+  transition:all .12s;
+}
+.copy-btn:hover{color:var(--blue);border-color:var(--blue);}
+pre{
+  background:#0a0d14;border:1px solid var(--border);
+  border-radius:0 0 7px 7px;padding:14px 16px;
+  overflow-x:auto;font-family:'JetBrains Mono',monospace;
+  font-size:13px;line-height:1.75;tab-size:2;
+}
+code.ic{
+  background:var(--s3);border:1px solid var(--border2);
+  padding:2px 6px;border-radius:4px;
+  font-family:'JetBrains Mono',monospace;font-size:12.5px;color:var(--cyan);
+}
+
+/* callout boxes */
+.box{border-radius:8px;padding:12px 14px;margin:10px 0;font-size:13.5px;line-height:1.6;border-left:3px solid;}
+.box strong{display:block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px;}
+.box.note{background:rgba(76,140,248,.07);border-color:var(--blue);}
+.box.note strong{color:var(--blue);}
+.box.ok{background:rgba(52,211,153,.07);border-color:var(--green);}
+.box.ok strong{color:var(--green);}
+.box.warn{background:rgba(251,191,36,.07);border-color:var(--amber);}
+.box.warn strong{color:var(--amber);}
+.box.err{background:rgba(248,113,113,.07);border-color:var(--red);}
+.box.err strong{color:var(--red);}
+
+/* what you see */
+.see{
+  background:var(--s3);border:1px dashed var(--border2);
+  border-radius:7px;padding:10px 14px;margin:10px 0;
+  font-family:'JetBrains Mono',monospace;font-size:12px;
+  color:var(--green);line-height:1.7;
+}
+.see::before{content:"👁  Expected output:";display:block;font-size:10px;color:var(--muted);font-family:'Space Grotesk',sans-serif;margin-bottom:6px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;}
+
+/* section divider */
+.section-title{
+  font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--muted);padding:20px 0 10px;
+  border-bottom:1px solid var(--border);margin-bottom:20px;
+  display:flex;align-items:center;gap:10px;
+}
+.section-title::after{content:'';flex:1;height:1px;background:var(--border);}
+
+/* screenshot reminder */
+.screenshot{
+  display:flex;align-items:center;gap:10px;
+  background:rgba(244,114,182,.06);border:1px solid rgba(244,114,182,.2);
+  border-radius:7px;padding:10px 14px;margin:10px 0;
+  font-size:13px;color:var(--pink);
+}
+
+/* nav */
+.nav-row{display:flex;gap:12px;margin-top:30px;padding-top:20px;border-top:1px solid var(--border);}
+.nav-btn{
+  padding:10px 22px;border-radius:8px;cursor:pointer;
+  font-family:'Space Grotesk',sans-serif;font-size:13.5px;font-weight:600;
+  border:1px solid var(--border2);background:var(--s2);color:var(--text);
+  transition:all .12s;
+}
+.nav-btn:hover{border-color:var(--blue);color:var(--blue);}
+.nav-btn.p{background:var(--blue);color:#fff;border-color:var(--blue);}
+.nav-btn.p:hover{background:#3a7ae0;}
+.nav-btn:disabled{opacity:.3;cursor:not-allowed;}
+
+/* color helpers */
+.b{background:rgba(76,140,248,.12);color:#4c8cf8;}
+.pu{background:rgba(139,92,246,.12);color:#8b5cf6;}
+.g{background:rgba(52,211,153,.12);color:#34d399;}
+.a{background:rgba(251,191,36,.12);color:#fbbf24;}
+.r{background:rgba(248,113,113,.12);color:#f87171;}
+.c{background:rgba(34,211,238,.12);color:#22d3ee;}
+.pk{background:rgba(244,114,182,.12);color:#f472b6;}
+.wh{background:rgba(255,255,255,.08);color:#dde3f5;}
+
+hr.div{border:none;border-top:1px solid var(--border);margin:20px 0;}
+
+/* scrollbar */
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:var(--s1);}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- SIDEBAR -->
+<aside>
+  <div class="aside-top">
+    <div class="aside-logo">NIDS Internship Guide</div>
+    <div class="aside-title">Windows Setup — Every Step</div>
+    <div class="aside-sub">Follow in exact order top to bottom</div>
+  </div>
+  <div class="phase-list" id="phaseList"></div>
+  <div class="aside-progress">
+    <div class="prog-row"><span>Overall Progress</span><span id="pct">0%</span></div>
+    <div class="prog-track"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main>
+  <div class="topbar">
+    <span class="tb-phase b" id="tbBadge">Phase 1</span>
+    <span class="tb-title" id="tbTitle">Environment Setup</span>
+    <span class="tb-count" id="tbCount">Phase 1 of 8</span>
+  </div>
+
+<!-- ═══════════════════════════════════════════════════
+     PHASE 1 — Environment Setup
+════════════════════════════════════════════════════ -->
+<div class="panel active" id="ph1">
+<div class="ph-hero">
+  <div class="em">🖥️</div>
+  <div>
+    <h2>Phase 1 — Environment Setup</h2>
+    <p>You will install everything needed: WSL 2 (Linux inside Windows), VS Code editor, Python 3, Suricata IDS, and all Python libraries. Do every step in the exact order shown below — do not skip anything.</p>
+    <div class="pills">
+      <span class="pill b">WSL 2</span>
+      <span class="pill pu">Ubuntu 22.04</span>
+      <span class="pill g">VS Code</span>
+      <span class="pill a">Python 3</span>
+      <span class="pill c">Suricata</span>
+    </div>
+  </div>
+</div>
+
+<div class="section-title">Step 1 — Enable WSL on Windows</div>
+
+<div class="action">
+  <div class="action-num">1</div>
+  <div class="action-body">
+    <div class="action-tag wh">🪟 On Your Windows Desktop</div>
+    <h3>Press the Windows key on your keyboard</h3>
+    <p>Look at the bottom-left of your screen (or the center of your taskbar). Press the <strong>Windows logo key</strong> on your keyboard — it looks like ⊞.</p>
+  </div>
+</div>
+
+<div class="action">
+  <div class="action-num">2</div>
+  <div class="action-body">
+    <div class="action-tag wh">🪟 Start Menu</div>
+    <h3>Type "PowerShell" in the search bar that opens</h3>
+    <p>You will see a search bar appear. Type the word <code class="ic">PowerShell</code> with your keyboard. Do not press Enter yet.</p>
+  </div>
+</div>
+
+<div class="action">
+  <div class="action-num">3</div>
+  <div class="action-body">
+    <div class="action-tag wh">🪟 Search Results</div>
+    <h3>Right-click "Windows PowerShell" and choose "Run as administrator"</h3>
+    <p>In the search results you'll see <strong>Windows PowerShell</strong>. Do NOT left-click it. Instead, <strong>right-click</strong> it. A small menu appears. Click <strong>"Run as administrator"</strong>.</p>
+    <div class="box warn"><strong>⚠️ Important</strong>You must run as administrator. Normal PowerShell won't work for this step. A blue confirmation box (UAC prompt) may appear asking "Do you want to allow this app to make changes?" — click <strong>Yes</strong>.</div>
+    <p>A dark blue PowerShell window will open. You'll see text ending with <code class="ic">PS C:\Windows\system32&gt;</code></p>
+  </div>
+</div>
+
+<div class="action">
+  <div class="action-num">4</div>
+  <div class="action-body">
+    <div class="action-tag b">PowerShell (Admin)</div>
+    <h3>Enable the WSL Windows feature — copy and paste this command</h3>
+    <p>Click inside the blue PowerShell window. Then copy the command below and paste it with <strong>Ctrl+V</strong> (or right-click → Paste). Then press <strong>Enter</strong>.</p>
+    <div class="code-block">
+      <div class="code-top"><span>PowerShell (Admin)</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+      <pre>dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart</pre>
+    </div>
+    <div class="see">The operation completed successfully.</div>
+  </div>
+</div>
+
+<div class="action">
+  <div class="action-num">5</div>
+  <div class="action-body">
+    <div class="action-tag b">PowerShell (Admin)</div>
+    <h3>Enable the Virtual Machine Platform feature</h3>
+    <p>In the same PowerShell window, paste this next command and press <strong>Enter</strong>.</p>
+    <div class="code-block">
+      <div class="code-top"><span>PowerShell (Admin)</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+      <pre>dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart</pre>
+    </div>
+    <div class="see">The operation completed successfully.</div>
+  </div>
+</div>
+
+<div class="action">
+  <div class="action-num">6</div>
+  <div class="action-body">
+    <div class="action-tag r">🔄 Restart Required</div>
+    <h3>Restart your computer now</h3>
+    <p>Type the restart command below and press Enter. Your PC will restart. <strong>Save any open work first.</strong></p>
+    <div class="code-block">
+      <div class="code-top"><span>PowerShell (Admin)</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+      <pre>Restart-Computer</pre>
+    </div>
+    <div class="box warn"><strong>⚠️ Wait for full restart</strong>Wait until Windows fully loads back to the desktop before continuing.</div>
+  </div>
+</div>
+
+<div class="section-title">Step 2 — Install Ubuntu after restart</div>
+
+<div class="action">
+  <div class="action-num">7</div>
+  <div class="action-body">
+    <div class="action-tag wh">🪟 After Restart</div>
+    <h3>Open PowerShell as Administrator again (same as steps 1–3)</h3>
+    <p>Press <strong>Windows key</strong> → type <code class="ic">PowerShell</code> → right-click → <strong>Run as administrator</strong> → click <strong>Yes</strong>.</p>
+  </div>
+</div>
+
+<div class="action">
+  <div class="action-num">8</div>
+  <div class="action-body">
+    <div class="action-tag b">PowerShell (Admin)</div>
+    <h3>Set WSL 2 as the default version</h3>
+    <p>Paste this command and press <strong>Enter</strong>.</p>
+    <div class="code-block">
+      <div class="code-top"><span>PowerShell (Admin)</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+      <pre>wsl --set-default-version 2</pre>
+    </div>
+    <div class="see">For information on key differences with WSL 2 please visit https://aka.ms/wsl2</div>
+  </div>
+</div>
+
+<div class="action">
+  <div class="action-num">9</div>
+  <div class="action-body">
+    <div class="action-tag b">PowerShell (Admin)</div>
+    <h3>Install Ubuntu 22.04</h3>
+    <p>Paste this command and press <strong>Enter</strong>. It will download Ubuntu (may take 2–5 minutes depending on internet speed).</p>
+    <div class="code-block">
+      <div class="code-top"><span>PowerShell (Admin)</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+      <pre>wsl --install -d Ubuntu-22.04</pre>
+    </div>
+    <div class="box note"><strong>📌 What happens next</strong>A new window will open showing Ubuntu being installed. When it finishes, it will ask you to <strong>create a username</strong> — type any simple username (e.g. <code class="ic">student</code>) and press Enter. Then it asks for a <strong>password</strong> — type any password (note: you won't see it being typed, that's normal) and press Enter. Type it again to confirm.</div>
+    <div class="see">Installing, this may take a few minutes...
+Please create a default UNIX user account.
+Enter new UNIX username: student
+New password:
+Retype new password:
+passwd: password updated successfully</div>
+  </div>
+</div>
+
+<div class="action">
+  <div class="action-num">10</div>
+  <div class="action-body">
+    <div class="action-tag b">PowerShell (Admin)</div>
+    <h3>Verify WSL 2 is installed correctly</h3>
+    <p>Go back to the PowerShell window and run:</p>
+    <div class="code-block">
+      <div class="code-top"><span>PowerShell (Admin)</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+      <pre>wsl --list --verbose</pre>
+    </div>
+    <div class="see">  NAME            STATE           VERSION
+* Ubuntu-22.04    Running         2</pre></div>
+    <div class="box warn"><strong>⚠️ If VERSION shows 1 instead of 2</strong>Run: <code class="ic">wsl --set-version Ubuntu-22.04 2</code> and wait for conversion.</div>
+  </div>
+</div>
+
+<div class="section-title">Step 3 — Install VS Code</div>
+
+<div class="action">
+  <div class="action-num">11</div>
+  <div class="action-body">
+    <div class="action-tag wh">🌐 In Your Windows Browser (Chrome/Edge)</div>
+    <h3>Go to the VS Code download page</h3>
+    <p>Open Chrome or Edge on Windows. Go to this address:</p>
+    <div class="code-block">
+      <div class="code-top"><span>Browser address bar</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+      <pre>https://code.visualstudio.com/download</pre>
+    </div>
+  </div>
+</div>
+
+<div class="action">
+  <div class="action-num">12</div>
+  <div class="action-body">
+    <div class="action-tag wh">🌐 VS Code Website</div>
+    <h3>Click the big blue "Windows" download button</h3>
+    <p>On the page you'll see download buttons. Click the large <strong>blue button that says "Windows"</strong> (it will say something like "User Installer 64-bit"). The installer file will download to your Downloads folder.</p>
+  </div>
+</div>
+
+<div class="action">
+  <div class="action-num">13</div>
+  <div class="action-body">
+    <div class="action-tag wh">🪟 File Explorer / Downloads</div>
+    <h3>Run the VS Code installer</h3>
+    <p>Open your <strong>Downloads folder</strong> (press <code class="ic">Win + E</code> → click Downloads). Double-click the file named something like <code class="ic">VSCodeUserSetup-x64-1.xx.x.exe</code>.</p>
+    <p>The installer opens. Click <strong>Next</strong> → accept the agreement → click <strong>Next</strong> → <strong>Next</strong> → check the box <strong>"Add to PATH"</strong> → click <strong>Install</strong> → click <strong>Finish</strong>. VS Code will open automatically.</p>
+  </div>
+</div>
+
+<div class="action">
+  <div class="action-num">14</div>
+  <div class="action-body">
+    <div class="action-tag g">VS Code</div>
+    <h3>Install the WSL Extension inside VS Code</h3>
+    <p>VS Code is now open. Look at the left sidebar — click the <strong>Extensions icon</strong> (it looks like 4 squares, or press <code class="ic">Ctrl+Shift+X</code>).</p>
+    <p>In the search box at the top, type: <code class="ic">WSL</code></p>
+    <p>You'll see <strong>"WSL" by Microsoft</strong> at the top of results. Click the blue <strong>Install</strong> button next to it.</p>
+    <div class="see">WSL extension installed successfully.</div>
+  </div>
+</div>
+
+<div class="section-title">Step 4 — Open Ubuntu and Update It</div>
+
+<div class="action">
+  <div class="action-num">15</div>
+  <div class="action-body">
+    <div class="action-tag wh">🪟 Windows Start Menu</div>
+    <h3>Open the Ubuntu terminal</h3>
+    <p>Press the <strong>Windows key</strong> and type <code class="ic">Ubuntu</code>. You'll see <strong>Ubuntu 22.04 LTS</strong> in results. Click it (normal left click). A black/purple terminal window opens showing your Linux prompt.</p>
+    <p>You'll see something like: <code class="ic">student@DESKTOP-XXXXX:~$</code> — this is your Ubuntu command line. You're now inside Linux.</p>
+    <div class="box ok"><strong>✅ You are now in Linux!</strong>Everything you type here runs inside Ubuntu Linux, not Windows. This is where you'll do all your work.</div>
+  </div>
+</div>
+
+<div class="action">
+  <div class="action-num">16</div>
+  <div class="action-body">
+    <div class="action-tag pu">Ubuntu Terminal</div>
+    <h3>Update Ubuntu's package list</h3>
+    <p>Type (or paste with right-click) this command and press <strong>Enter</strong>. It may ask for your password — type the password you created in step 9.</p>
+    <div class="code-block">
+      <div class="code-top"><span>Ubuntu Terminal</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+      <pre>sudo apt update && sudo apt upgrade -y</pre>
+    </div>
+    <p>This will take 1–3 minutes. You'll see lots of text scrolling. Wait until you see the <code class="ic">$</code> prompt again.</p>
+    <div class="see">Reading package lists... Done
+Building dependency tree... Done
+...
+0 upgraded, 0 newly installed, 0 to remove</div>
+  </div>
+</div>
+
+<div class="section-title">Step 5 — Install Python 3</div>
+
+<div class="action">
+  <div class="action-num">17</div>
+  <div class="action-body">
+    <div class="action-tag pu">Ubuntu Terminal</div>
+    <h3>Install Python 3, pip, and venv</h3>
+    <p>In the Ubuntu terminal, paste this command and press <strong>Enter</strong>. Type your password if asked.</p>
+    <div class="code-block">
+      <div class="code-top"><span>Ubuntu Terminal</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+      <pre>sudo apt install python3 python3-pip python3-venv -y</pre>
+    </div>
+    <div class="see">Reading package lists... Done
+...
+Setting up python3-pip (22.x.x) ...</div>
+  </div>
+</div>
+
+<div class="action">
+  <div class="action-num">18</div>
+  <div class="action-body">
+    <div class="action-tag pu">Ubuntu Terminal</div>
+    <h3>Verify Python is installed</h3>
+    <div class="code-block">
+      <div class="code-top"><span>Ubuntu Terminal</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+      <pre>python3 --version</pre>
+    </div>
+    <div class="see">Python 3.10.12</div>
+    <div class="box err"><strong>❌ If you see "command not found"</strong>Re-run step 17. Make sure you copied the full command.</div>
+  </div>
+</div>
+
+<div class="section-title">Step 6 — Install Suricata</div>
+
+<div class="action">
+  <div class="action-num">19</div>
+  <div class="action-body">
+    <div class="action-tag pu">Ubuntu Terminal</div>
+    <h3>Add Suricata's official software repository</h3>
+    <div class="code-block">
+      <div class="code-top"><span>Ubuntu Terminal</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+      <pre>sudo add-apt-repository ppa:oisf/suricata-stable -y</pre>
+    </div>
+    <div class="see">Repository: 'deb https://ppa.launchpadcontent.net/oisf/suricata-stable/ubuntu/ jammy main'</div>
+  </div>
+</div>
+
+<div class="action">
+  <div class="action-num">20</div>
+  <div class="action-body">
+    <div class="action-tag pu">Ubuntu Terminal</div>
+    <h3>Update package list again (to include Suricata)</h3>
+    <div class="code-block">
+      <div class="code-top"><span>Ubuntu Terminal</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+      <pre>sudo apt update</pre>
+    </div>
+  </div>
+</div>
+
+<div class="action">
+  <div class="action-num">21</div>
+  <div class="action-body">
+    <div class="action-tag pu">Ubuntu Terminal</div>
+    <h3>Install Suricata</h3>
+    <div class="code-block">
+      <div class="code-top"><span>Ubuntu Terminal</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+      <pre>sudo apt install suricata -y</pre>
+    </div>
+    <p>Wait 1–3 minutes for installation to complete.</p>
+    <div class="see">Setting up suricata (7.x.x) ...</div>
+  </div>
+</div>
+
+<div class="action">
+  <div class="action-num">22</div>
+  <div class="action-body">
+    <div class="action-tag pu">Ubuntu Terminal</div>
+    <h3>Verify Suricata is installed</h3>
+    <div class="code-block">
+      <div class="code-top"><span>Ubuntu Terminal</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+      <pre>suricata --version</pre>
+    </div>
+    <div class="see">This is Suricata version 7.0.x RELEASE</div>
+    <div class="box err"><strong>❌ If you see "command not found"</strong>Run: <code class="ic">sudo apt install suricata -y</code> again.</div>
+  </div>
+</div>
+
+<div class="section-title">Step 7 — Install Python Libraries</div>
+
+<div class="action">
+  <div class="action-num">23</div>
+  <div class="action-body">
+    <div class="action-tag pu">Ubuntu Terminal</div>
+    <h3>Install Flask, watchdog, and pandas</h3>
+    <div class="code-block">
+      <div class="code-top"><span>Ubuntu Terminal</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+      <pre>pip3 install flask watchdog pandas --break-system-packages</pre>
+    </div>
+    <div class="see">Successfully installed flask-3.x.x watchdog-x.x.x pandas-x.x.x</div>
+  </div>
+</div>
+
+<div class="action">
+  <div class="action-num">24</div>
+  <div class="action-body">
+    <div class="action-tag pu">Ubuntu Terminal</div>
+    <h3>Verify Flask installed</h3>
+    <div class="code-block">
+      <div class="code-top"><span>Ubuntu Terminal</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+      <pre>python3 -c "import flask; print('Flask OK:', flask.__version__)"</pre>
+    </div>
+    <div class="see">Flask OK: 3.x.x</div>
+    <div class="box ok"><strong>✅ Phase 1 Complete!</strong>You now have WSL 2, Ubuntu, VS Code, Python 3, Suricata, and Flask installed. Move to Phase 2.</div>
+    <div class="screenshot">📸 Take a screenshot of your terminal showing the suricata version and Flask OK output — you'll need this for your submission.</div>
+  </div>
+</div>
+
+<div class="nav-row">
+  <button class="nav-btn" disabled>← Previous</button>
+  <button class="nav-btn p" onclick="go(2)">Phase 2: Configure Suricata →</button>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     PHASE 2 — Configure Suricata
+════════════════════════════════════════════════════ -->
+<div class="panel" id="ph2">
+<div class="ph-hero">
+  <div class="em">⚙️</div>
+  <div>
+    <h2>Phase 2 — Configure Suricata</h2>
+    <p>Tell Suricata which network interface to watch, what your home network is, and where to save alert logs. Every sub-step matters — follow in order.</p>
+    <div class="pills"><span class="pill pu">suricata.yaml</span><span class="pill b">Network Interface</span><span class="pill g">EVE JSON Logging</span></div>
+  </div>
+</div>
+
+<div class="section-title">Step 1 — Find your network interface name</div>
+
+<div class="action">
+  <div class="action-num">25</div>
+  <div class="action-body">
+    <div class="action-tag pu">Ubuntu Terminal</div>
+    <h3>Open your Ubuntu terminal (if it's closed)</h3>
+    <p>Press <strong>Windows key</strong> → type <code class="ic">Ubuntu</code> → click Ubuntu 22.04. The terminal opens.</p>
+  </div>
+</div>
+
+<div class="action">
+  <div class="action-num">26</div>
+  <div class="action-body">
+    <div class="action-tag pu">Ubuntu Terminal</div>
+    <h3>Run the network interface command</h3>
+    <div class="code-block">
+      <div class="code-top"><span>Ubuntu Terminal</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+      <pre>ip a</pre>
+    </div>
+    <div class="see">1: lo: &lt;LOOPBACK&gt; ...
+    inet 127.0.0.1/8
+2: eth0: &lt;BROADCAST,MULTICAST,UP&gt; ...
+    inet 172.20.48.1/20 brd 172.20.63.255</div>
+    <p>Look for a line that shows a real IP address (not 127.0.0.1). The name before the colon — like <code class="ic">eth0</code> — is your interface name. <strong>Write this name down on paper.</strong></p>
+    <div class="box warn"><strong>⚠️ Common interface names in WSL 2</strong>Usually <code class="ic">eth0</code>. Could also be <code class="ic">ens33</code>, <code class="ic">ens3</code>, or <code class="ic">enp0s3</code>. Use whatever yours shows.</div>
+  </div>
+</div>
+
+<div class="section-title">Step 2 — Open Suricata config in VS Code</div>
+
+<div class="action">
+  <div class="action-num">27</div>
+  <div class="action-body">
+    <div class="action-tag pu">Ubuntu Terminal</div>
+    <h3>Open the Suricata config file in VS Code</h3>
+    <p>Paste this command and press Enter. VS Code will open the file.</p>
+    <div class="code-block">
+      <div class="code-top"><span>Ubuntu Terminal</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+      <pre>sudo cp /etc/suricata/suricata.yaml ~/suricata.yaml && code ~/suricata.yaml</pre>
+    </div>
+    <div class="box note"><strong>📌 Why copy it first?</strong>This copies the config to your home folder so VS Code can edit it without permission issues. We'll copy it back after editing.</div>
+  </div>
+</div>
+
+<div class="action">
+  <div class="action-num">28</div>
+  <div class="action-body">
+    <div class="action-tag g">VS Code</div>
+    <h3>VS Code opens the suricata.yaml file — wait for it to fully load</h3>
+    <p>VS Code will open and show a long file with many lines. Wait for it to fully load (the spinning circle in the tab stops).</p>
+  </div>
+</div>
+
+<div class="section-title">Step 3 — Edit HOME_NET setting</div>
+
+<div class="action">
+  <div class="action-num">29</div>
+  <div class="action-body">
+    <div class="action-tag g">VS Code — suricata.yaml</div>
+    <h3>Open the Find and Replace tool</h3>
+    <p>Inside VS Code, press <code class="ic">Ctrl + H</code> on your keyboard. A Find &amp; Replace bar appears at the top right of the editor.</p>
+  </div>
+</div>
+
+<div class="action">
+  <div class="action-num">30</div>
+  <div class="action-body">
+    <div class="action-tag g">VS Code — Find &amp; Replace</div>
+    <h3>Find the HOME_NET line and replace it</h3>
+    <p>In the <strong>Find box</strong> (top box), type or paste:</p>
+    <div class="code-block">
+      <div class="code-top"><span>Find box</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+      <pre>HOME_NET: "[192.168.0.0/16,10.0.0.0/8,172.16.0.0/12]"</pre>
+    </div>
+    <p style="margin-top:8px;">In the <strong>Replace box</strong> (bottom box), paste:</p>
+    <div class="code-block">
+      <div class="code-top"><span>Replace box</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+      <pre>HOME_NET: "[192.168.0.0/16,10.0.0.0/8,172.16.0.0/12,172.20.0.0/14]"</pre>
+    </div>
+    <p style="margin-top:8px;">Click the <strong>Replace All</strong> button (looks like two circular arrows) or press <code class="ic">Ctrl+Alt+Enter</code>.</p>
+    <div class="box note"><strong>📌 What if it can't find the exact line?</strong>Press <code class="ic">Ctrl+F</code> and search for <code class="ic">HOME_NET</code>. Find the line that starts with <code class="ic">HOME_NET:</code> around line 17. Click on that line and manually change it to: <code class="ic">HOME_NET: "[192.168.0.0/16,10.0.0.0/8,172.16.0.0/12,172.20.0.0/14]"</code></div>
+  </div>
+</div>
+
+<div class="section-title">Step 4 — Edit network interface setting</div>
+
+<div class="action">
+  <div class="action-num">31</div>
+  <div class="action-body">
+    <div class="action-tag g">VS Code — suricata.yaml</div>
+    <h3>Use Ctrl+F to search for "af-packet"</h3>
+    <p>Press <code class="ic">Ctrl + F</code> to open the Find bar. Type <code class="ic">af-packet</code> and press <strong>Enter</strong>. VS Code will jump to that section of the file. You'll see something like:</p>
+    <div class="code-block">
+      <div class="code-top"><span>What you'll see in the file</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+      <pre>af-packet:
+  - interface: eth0</pre>
+    </div>
+    <p>If the interface already says <code class="ic">eth0</code> and your interface is <code class="ic">eth0</code>, leave it. If yours is different (e.g. <code class="ic">ens33</code>), click on <code class="ic">eth0</code> after <code class="ic">interface:</code> and change it to your interface name.</p>
+  </div>
+</div>
+
+<div class="section-title">Step 5 — Enable EVE JSON log output</div>
+
+<div class="action">
+  <div class="action-num">32</div>
+  <div class="action-body">
+    <div class="action-tag g">VS Code — suricata.yaml</div>
+    <h3>Search for "eve-log" in the file</h3>
+    <p>Press <code class="ic">Ctrl + F</code>. Type <code class="ic">eve-log</code>. Press Enter to jump to that section.</p>
+    <p>Find the line that says <code class="ic">enabled:</code> under eve-log. Make sure it says:</p>
+    <div class="code-block">
+      <div class="code-top"><span>Should look like this</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+      <pre>  - eve-log:
+      enabled: yes
+      filetype: regular
+      filename: /var/log/suricata/eve.json</pre>
+    </div>
+    <p>If <code class="ic">enabled:</code> says <code class="ic">no</code>, click on <code class="ic">no</code> and change it to <code class="ic">yes</code>.</p>
+  </div>
+</div>
+
+<div class="action">
+  <div class="action-num">33</div>
+  <div class="action-body">
+    <div class="action-tag g">VS Code</div>
+    <h3>Save the file</h3>
+    <p>Press <code class="ic">Ctrl + S</code> to save. The dot on the tab (indicating unsaved changes) will disappear.</p>
+  </div>
+</div>
+
+<div class="action">
+  <div class="action-num">34</div>
+  <div class="action-body">
+    <div class="action-tag pu">Ubuntu Terminal</div>
+    <h3>Copy the edited file back to Suricata's config folder</h3>
+    <p>Go back to your Ubuntu terminal and run:</p>
+    <div class="code-block">
+      <div class="code-top"><span>Ubuntu Terminal</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+      <pre>sudo cp ~/suricata.yaml /etc/suricata/suricata.yaml</pre>
+    </div>
+  </div>
+</div>
+
+<div class="section-title">Step 6 — Test the configuration</div>
+
+<div class="action">
+  <div class="action-num">35</div>
+  <div class="action-body">
+    <div class="action-tag pu">Ubuntu Terminal</div>
+    <h3>Test Suricata config for errors</h3>
+    <div class="code-block">
+      <div class="code-top"><span>Ubuntu Terminal</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+      <pre>sudo suricata -T -c /etc/suricata/suricata.yaml -v</pre>
+    </div>
+    <div class="see">...
+Notice: suricata: Configuration provided was successfully loaded. Exiting.</div>
+    <div class="box err"><strong>❌ If you see "Error" lines</strong>The error message will show the line number. Open the config again with <code class="ic">code ~/suricata.yaml</code>, go to that line number (Ctrl+G → type number), fix the indentation (use spaces, never tabs in YAML), save, and copy back with step 34. Then test again.</div>
+    <div class="box ok"><strong>✅ Phase 2 Complete!</strong>Suricata is configured. Move to Phase 3 to write detection rules.</div>
+  </div>
+</div>
+
+<div class="nav-row">
+  <button class="nav-btn" onclick="go(1)">← Phase 1</button>
+  <button class="nav-btn p" onclick="go(3)">Phase 3: Write Rules →</button>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     PHASE 3 — Detection Rules
+════════════════════════════════════════════════════ -->
+<div class="panel" id="ph3">
+<div class="ph-hero">
+  <div class="em">📋</div>
+  <div>
+    <h2>Phase 3 — Write Detection Rules + Create Project Folder</h2>
+    <p>Create your project folder, write 10 custom detection rules, register them in Suricata, then download thousands of community rules. Every micro-step listed.</p>
+  </div>
+</div>
+
+<div class="section-title">Step 1 — Create project folder</div>
+
+<div class="action">
+  <div class="action-num">36</div>
+  <div class="action-body">
+    <div class="action-tag pu">Ubuntu Terminal</div>
+    <h3>Create the project folder and templates subfolder</h3>
+    <div class="code-block">
+      <div class="code-top"><span>Ubuntu Terminal</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+      <pre>mkdir -p ~/nids-project/templates</pre>
+    </div>
+  </div>
+</div>
+
+<div class="action">
+  <div class="action-num">37</div>
+  <div class="action-body">
+    <div class="action-tag pu">Ubuntu Terminal</div>
+    <h3>Go into the project folder</h3>
+    <div class="code-block">
+      <div class="code-top"><span>Ubuntu Terminal</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+      <pre>cd ~/nids-project</pre>
+    </div>
+  </div>
+</div>
+
+<div class="action">
+  <div class="action-num">38</div>
+  <div class="action-body">
+    <div class="action-tag pu">Ubuntu Terminal</div>
+    <h3>Open the project folder in VS Code</h3>
+    <div class="code-block">
+      <div class="code-top"><span>Ubuntu Terminal</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+      <pre>code .</pre>
+    </div>
+    <p>VS Code opens. You'll see <strong>NIDS-PROJECT</strong> in the Explorer sidebar on the left with a <code class="ic">templates</code> folder inside.</p>
+    <div class="box note"><strong>📌 VS Code bottom-left corner</strong>It should show a green badge saying <strong>"WSL: Ubuntu-22.04"</strong> — this confirms VS Code is editing files inside Linux.</div>
+  </div>
+</div>
+
+<div class="section-title">Step 2 — Create the rules file</div>
+
+<div class="action">
+  <div class="action-num">39</div>
+  <div class="action-body">
+    <div class="action-tag pu">Ubuntu Terminal</div>
+    <h3>Open the Suricata rules file for editing</h3>
+    <div class="code-block">
+      <div class="code-top"><span>Ubuntu Terminal</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+      <pre>sudo nano /etc/suricata/rules/local.rules</pre>
+    </div>
+    <p>The nano text editor opens (a simple editor inside the terminal). It will be blank — this is a new empty file.</p>
+  </div>
+</div>
+
+<div class="action">
+  <div class="action-num">40</div>
+  <div class="action-body">
+    <div class="action-tag pu">Nano Editor (in Terminal)</div>
+    <h3>Paste all 10 detection rules into nano</h3>
+    <p>Copy the entire block below, then in the nano editor press <strong>right-click → Paste</strong> (or Shift+Insert). All 10 rules will appear in the editor.</p>
+    <div class="code-block">
+      <div class="code-top"><span>/etc/suricata/rules/local.rules — ALL 10 RULES</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+      <pre># RULE 1: ICMP Ping Flood
+alert icmp any any -> $HOME_NET any (msg:"ICMP Ping Flood Detected"; threshold: type both, track by_src, count 10, seconds 5; sid:1000001; rev:1;)
+
+# RULE 2: TCP Port Scan
+alert tcp any any -> $HOME_NET any (msg:"TCP Port Scan Detected"; flags:S; threshold: type threshold, track by_src, count 20, seconds 10; sid:1000002; rev:1;)
+
+# RULE 3: SSH Brute Force
+alert tcp any any -> $HOME_NET 22 (msg:"SSH Brute Force Attempt"; threshold: type both, track by_src, count 5, seconds 60; sid:1000003; rev:1;)
+
+# RULE 4: SQL Injection - OR 1=1
+alert http any any -> $HOME_NET any (msg:"SQL Injection Attempt - OR 1=1"; content:"' OR '1'='1"; http_uri; nocase; sid:1000004; rev:1;)
+
+# RULE 5: SQL Injection - UNION SELECT
+alert http any any -> $HOME_NET any (msg:"SQL Injection Attempt - UNION SELECT"; content:"UNION SELECT"; http_uri; nocase; sid:1000005; rev:1;)
+
+# RULE 6: Telnet Attempt
+alert tcp any any -> $HOME_NET 23 (msg:"Telnet Connection Attempt - Unencrypted Protocol"; sid:1000006; rev:1;)
+
+# RULE 7: FTP Brute Force
+alert tcp any any -> $HOME_NET 21 (msg:"FTP Brute Force Attempt"; threshold: type both, track by_src, count 5, seconds 30; sid:1000007; rev:1;)
+
+# RULE 8: Directory Traversal
+alert http any any -> $HOME_NET any (msg:"Directory Traversal Attempt"; content:"../"; http_uri; sid:1000008; rev:1;)
+
+# RULE 9: XSS Attempt
+alert http any any -> $HOME_NET any (msg:"XSS Attempt Detected"; content:"&lt;script&gt;"; http_uri; nocase; sid:1000009; rev:1;)
+
+# RULE 10: RDP Brute Force
+alert tcp any any -> $HOME_NET 3389 (msg:"RDP Brute Force Attempt"; threshold: type both, track by_src, count 5, seconds 60; sid:1000010; rev:1;)</pre>
+    </div>
+    <div class="box warn"><strong>⚠️ Pasting in nano</strong>If right-click → Paste doesn't work, try pressing <code class="ic">Shift+Insert</code> inside the terminal window. You should see all 10 rules appear.</div>
+  </div>
+</div>
+
+<div class="action">
+  <div class="action-num">41</div>
+  <div class="action-body">
+    <div class="action-tag pu">Nano Editor</div>
+    <h3>Save the file in nano</h3>
+    <p>Press <code class="ic">Ctrl + O</code> (the letter O, not zero). Nano will ask "File Name to Write: /etc/suricata/rules/local.rules" — press <strong>Enter</strong> to confirm. Then press <code class="ic">Ctrl + X</code> to exit nano and return to the normal terminal prompt.</p>
+    <div class="see">Wrote 35 lines.</div>
+  </div>
+</div>
+
+<div class="section-title">Step 3 — Register rules in Suricata config</div>
+
+<div class="action">
+  <div class="action-num">42</div>
+  <div class="action-body">
+    <div class="action-tag pu">Ubuntu Terminal</div>
+    <h3>Open suricata.yaml to add the rules reference</h3>
+    <div class="code-block">
+      <div class="code-top"><span>Ubuntu Terminal</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+      <pre>sudo nano /etc/suricata/suricata.yaml</pre>
+    </div>
+  </div>
+</div>
+
+<div class="action">
+  <div class="action-num">43</div>
+  <div class="action-body">
+    <div class="action-tag pu">Nano Editor</div>
+    <h3>Search for "rule-files" in nano</h3>
+    <p>Press <code class="ic">Ctrl + W</code> (search), type <code class="ic">rule-files</code>, press <strong>Enter</strong>. Nano jumps to that section. You'll see something like:</p>
+    <div class="code-block">
+      <div class="code-top"><span>Current file content at that line</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+      <pre>rule-files:
+  - suricata.rules</pre>
+    </div>
+  </div>
+</div>
+
+<div class="action">
+  <div class="action-num">44</div>
+  <div class="action-body">
+    <div class="action-tag pu">Nano Editor</div>
+    <h3>Add local.rules below suricata.rules</h3>
+    <p>Use your arrow keys to move the cursor to the end of the line that says <code class="ic">- suricata.rules</code>. Press <strong>Enter</strong> to create a new line. Make sure it is indented with exactly <strong>2 spaces then a dash then a space</strong>, then type <code class="ic">local.rules</code>. Result should be:</p>
+    <div class="code-block">
+      <div class="code-top"><span>After your edit</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+      <pre>rule-files:
+  - suricata.rules
+  - local.rules</pre>
+    </div>
+    <div class="box warn"><strong>⚠️ Indentation matters!</strong>Use exactly 2 spaces before the dash. No tabs. If the spacing is wrong, Suricata will fail to start.</div>
+  </div>
+</div>
+
+<div class="action">
+  <div class="action-num">45</div>
+  <div class="action-body">
+    <div class="action-tag pu">Nano Editor</div>
+    <h3>Save and exit nano</h3>
+    <p>Press <code class="ic">Ctrl + O</code> → press <strong>Enter</strong> → press <code class="ic">Ctrl + X</code>.</p>
+  </div>
+</div>
+
+<div class="action">
+  <div class="action-num">46</div>
+  <div class="action-body">
+    <div class="action-tag pu">Ubuntu Terminal</div>
+    <h3>Copy updated config back to Suricata</h3>
+    <div class="code-block">
+      <div class="code-top"><span>Ubuntu Terminal</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+      <pre>sudo cp /etc/suricata/suricata.yaml /etc/suricata/suricata.yaml.bak
+sudo suricata -T -c /etc/suricata/suricata.yaml -v</pre>
+    </div>
+    <div class="see">Notice: suricata: Configuration provided was successfully loaded. Exiting.</div>
+  </div>
+</div>
+
+<div class="section-title">Step 4 — Download community rules</div>
+
+<div class="action">
+  <div class="action-num">47</div>
+  <div class="action-body">
+    <div class="action-tag pu">Ubuntu Terminal</div>
+    <h3>Install suricata-update tool</h3>
+    <div class="code-block">
+      <div class="code-top"><span>Ubuntu Terminal</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+      <pre>sudo pip3 install suricata-update --break-system-packages</pre>
+    </div>
+  </div>
+</div>
+
+<div class="action">
+  <div class="action-num">48</div>
+  <div class="action-body">
+    <div class="action-tag pu">Ubuntu Terminal</div>
+    <h3>Download Emerging Threats ruleset</h3>
+    <div class="code-block">
+      <div class="code-top"><span>Ubuntu Terminal</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+      <pre>sudo suricata-update</pre>
+    </div>
+    <p>This downloads thousands of community rules. Takes 30 seconds to 2 minutes.</p>
+    <div class="see">Loading rule files.
+...
+Loaded 45000 rules.
+Enabled 45000 rules.</div>
+    <div class="box ok"><strong>✅ Phase 3 Complete!</strong>You have 10 custom rules + 45,000+ community rules. Move to Phase 4.</div>
+    <div class="screenshot">📸 Screenshot your terminal showing "Loaded X rules" — great evidence for your report.</div>
+  </div>
+</div>
+
+<div class="nav-row">
+  <button class="nav-btn" onclick="go(2)">← Phase 2</button>
+  <button class="nav-btn p" onclick="go(4)">Phase 4: Write Python Files →</button>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     PHASE 4 — Python Files
+════════════════════════════════════════════════════ -->
+<div class="panel" id="ph4">
+<div class="ph-hero">
+  <div class="em">🐍</div>
+  <div>
+    <h2>Phase 4 — Create Python Files in VS Code</h2>
+    <p>You'll create 3 Python files inside VS Code. For each one: VS Code → New File → paste code → save. Every click described.</p>
+  </div>
+</div>
+
+<div class="section-title">File 1 of 3 — alert_monitor.py</div>
+
+<div class="action">
+  <div class="action-num">49</div>
+  <div class="action-body">
+    <div class="action-tag g">VS Code</div>
+    <h3>Make sure your nids-project is open in VS Code</h3>
+    <p>VS Code should still be open from Phase 3. If not, go to your Ubuntu terminal and run <code class="ic">cd ~/nids-project && code .</code></p>
+    <p>You should see <strong>NIDS-PROJECT</strong> in the left Explorer panel with a <code class="ic">templates</code> folder.</p>
+  </div>
+</div>
+
+<div class="action">
+  <div class="action-num">50</div>
+  <div class="action-body">
+    <div class="action-tag g">VS Code — Explorer Panel</div>
+    <h3>Create a new file called alert_monitor.py</h3>
+    <p>In VS Code, look at the left panel (Explorer). Hover over the <strong>NIDS-PROJECT</strong> title — you'll see small icons appear. Click the <strong>New File icon</strong> (looks like a page with a + sign). A text box appears. Type <code class="ic">alert_monitor.py</code> and press <strong>Enter</strong>.</p>
+    <p>A new blank file opens in the editor.</p>
+  </div>
+</div>
+
+<div class="action">
+  <div class="action-num">51</div>
+  <div class="action-body">
+    <div class="action-tag g">VS Code — alert_monitor.py</div>
+    <h3>Click inside the editor area and paste the code</h3>
+    <p>Click once inside the white/dark editing area of the file. Then copy the code below and press <code class="ic">Ctrl+V</code> to paste it.</p>
+    <div class="code-block">
+      <div class="code-top"><span>alert_monitor.py — FULL CODE</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+      <pre>#!/usr/bin/env python3
+"""
+NIDS Alert Monitor - Watches Suricata eve.json in real time.
+Prints color-coded alerts and auto-blocks critical source IPs.
+"""
+import json, time, os, subprocess
+from datetime import datetime
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
+
+EVE_LOG = "/var/log/suricata/eve.json"
+BLOCKED = set()
+
+def block_ip(ip):
+    if ip not in BLOCKED and not ip.startswith("127."):
+        print(f"\n\033[91m[BLOCKING IP] {ip}\033[0m")
+        subprocess.run(["sudo","iptables","-A","INPUT","-s",ip,"-j","DROP"])
+        BLOCKED.add(ip)
+        with open("response_log.txt","a") as f:
+            f.write(f"[{datetime.now()}] BLOCKED: {ip}\n")
+
+def print_alert(ev):
+    a   = ev.get("alert", {})
+    sev = a.get("severity", "?")
+    src = ev.get("src_ip", "N/A")
+    clr = "\033[91m" if sev==1 else ("\033[93m" if sev==2 else "\033[96m")
+    rst = "\033[0m"
+    print(f"{clr}")
+    print(f"{'='*60}")
+    print(f"  ALERT  |  Severity: {sev}")
+    print(f"  Time   : {ev.get('timestamp','')}")
+    print(f"  Source : {src}:{ev.get('src_port','')}")
+    print(f"  Dest   : {ev.get('dest_ip','')}:{ev.get('dest_port','')}")
+    print(f"  Rule   : {a.get('signature','')}")
+    print(f"  Cat    : {a.get('category','')}")
+    print(f"{'='*60}{rst}")
+    if sev == 1:
+        block_ip(src)
+
+class LogWatcher(FileSystemEventHandler):
+    def __init__(self):
+        self._pos = os.path.getsize(EVE_LOG) if os.path.exists(EVE_LOG) else 0
+    def on_modified(self, event):
+        if "eve.json" not in event.src_path:
+            return
+        with open(EVE_LOG) as f:
+            f.seek(self._pos)
+            for line in f:
+                try:
+                    ev = json.loads(line)
+                    if ev.get("event_type") == "alert":
+                        print_alert(ev)
+                except:
+                    pass
+            self._pos = f.tell()
+
+if __name__ == "__main__":
+    print("Shield NIDS Monitor Running - Ctrl+C to stop\n")
+    if not os.path.exists(EVE_LOG):
+        print(f"[WARN] Log not found yet: {EVE_LOG}")
+        print("[INFO] Suricata must be running to generate logs\n")
+    obs = Observer()
+    obs.schedule(LogWatcher(), path="/var/log/suricata/", recursive=False)
+    obs.start()
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        obs.stop()
+        print("\nMonitor stopped.")
+    obs.join()</pre>
+    </div>
+  </div>
+</div>
+
+<div class="action">
+  <div class="action-num">52</div>
+  <div class="action-body">
+    <div class="action-tag g">VS Code</div>
+    <h3>Save alert_monitor.py</h3>
+    <p>Press <code class="ic">Ctrl + S</code>. The dot on the tab disappears, meaning the file is saved.</p>
+  </div>
+</div>
+
+<div class="section-title">File 2 of 3 — dashboard_data.py</div>
+
+<div class="action">
+  <div class="action-num">53</div>
+  <div class="action-body">
+    <div class="action-tag g">VS Code — Explorer Panel</div>
+    <h3>Create a new file called dashboard_data.py</h3>
+    <p>In the Explorer panel on the left, hover over <strong>NIDS-PROJECT</strong>, click the <strong>New File icon</strong> again. Type <code class="ic">dashboard_data.py</code> and press <strong>Enter</strong>.</p>
+  </div>
+</div>
+
+<div class="action">
+  <div class="action-num">54</div>
+  <div class="action-body">
+    <div class="action-tag g">VS Code — dashboard_data.py</div>
+    <h3>Paste the dashboard data parser code</h3>
+    <div class="code-block">
+      <div class="code-top"><span>dashboard_data.py — FULL CODE</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+      <pre>#!/usr/bin/env python3
+"""
+Reads Suricata's eve.json, extracts all alert events,
+and writes dashboard_data.json for the Flask dashboard.
+"""
+import json, os
+from collections import Counter
+from datetime import datetime
+
+EVE_LOG = "/var/log/suricata/eve.json"
+
+def parse_alerts():
+    alerts = []
+    if not os.path.exists(EVE_LOG):
+        return alerts
+    with open(EVE_LOG) as f:
+        for line in f:
+            try:
+                ev = json.loads(line)
+                if ev.get("event_type") != "alert":
+                    continue
+                alerts.append({
+                    "timestamp" : ev.get("timestamp"),
+                    "src_ip"    : ev.get("src_ip"),
+                    "dest_ip"   : ev.get("dest_ip"),
+                    "dest_port" : ev.get("dest_port"),
+                    "proto"     : ev.get("proto"),
+                    "signature" : ev.get("alert", {}).get("signature"),
+                    "severity"  : ev.get("alert", {}).get("severity"),
+                    "category"  : ev.get("alert", {}).get("category"),
+                })
+            except:
+                pass
+    return alerts
+
+def build_summary(alerts):
+    sigs   = Counter(a["signature"] for a in alerts if a["signature"])
+    ips    = Counter(a["src_ip"]    for a in alerts if a["src_ip"])
+    cats   = Counter(a["category"]  for a in alerts if a["category"])
+    sevs   = Counter(str(a["severity"]) for a in alerts if a["severity"])
+    protos = Counter(a["proto"] for a in alerts if a["proto"])
+    return {
+        "generated_at"     : str(datetime.now()),
+        "total_alerts"     : len(alerts),
+        "unique_attackers" : len(ips),
+        "top_signatures"   : sigs.most_common(10),
+        "top_src_ips"      : ips.most_common(10),
+        "by_category"      : cats.most_common(),
+        "by_severity"      : dict(sevs),
+        "by_protocol"      : dict(protos),
+        "recent_alerts"    : alerts[-25:][::-1],
+    }
+
+if __name__ == "__main__":
+    alerts  = parse_alerts()
+    summary = build_summary(alerts)
+    with open("dashboard_data.json","w") as f:
+        json.dump(summary, f, indent=2, default=str)
+    print(f"[OK] {len(alerts)} alerts parsed -> dashboard_data.json")</pre>
+    </div>
+  </div>
+</div>
+
+<div class="action">
+  <div class="action-num">55</div>
+  <div class="action-body">
+    <div class="action-tag g">VS Code</div>
+    <h3>Save dashboard_data.py</h3>
+    <p>Press <code class="ic">Ctrl + S</code>.</p>
+  </div>
+</div>
+
+<div class="section-title">File 3 of 3 — app.py</div>
+
+<div class="action">
+  <div class="action-num">56</div>
+  <div class="action-body">
+    <div class="action-tag g">VS Code — Explorer Panel</div>
+    <h3>Create a new file called app.py</h3>
+    <p>Hover over <strong>NIDS-PROJECT</strong> → New File icon → type <code class="ic">app.py</code> → press <strong>Enter</strong>.</p>
+  </div>
+</div>
+
+<div class="action">
+  <div class="action-num">57</div>
+  <div class="action-body">
+    <div class="action-tag g">VS Code — app.py</div>
+    <h3>Paste the Flask server code</h3>
+    <div class="code-block">
+      <div class="code-top"><span>app.py — FULL CODE</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+      <pre>#!/usr/bin/env python3
+from flask import Flask, render_template, jsonify
+import json, os
+
+app = Flask(__name__)
+
+PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+@app.route("/")
+def index():
+    return render_template("dashboard.html")
+
+@app.route("/api/data")
+def api_data():
+    # Re-parse logs every time the page refreshes
+    os.system(f"python3 {PROJECT_DIR}/dashboard_data.py")
+    data_file = os.path.join(PROJECT_DIR, "dashboard_data.json")
+    try:
+        with open(data_file) as f:
+            return jsonify(json.load(f))
+    except FileNotFoundError:
+        return jsonify({
+            "total_alerts": 0, "unique_attackers": 0,
+            "top_signatures": [], "by_category": [],
+            "by_severity": {}, "recent_alerts": [],
+            "top_src_ips": [], "by_protocol": {}
+        })
+
+if __name__ == "__main__":
+    app.run(debug=True, host="0.0.0.0", port=5000)</pre>
+    </div>
+  </div>
+</div>
+
+<div class="action">
+  <div class="action-num">58</div>
+  <div class="action-body">
+    <div class="action-tag g">VS Code</div>
+    <h3>Save app.py</h3>
+    <p>Press <code class="ic">Ctrl + S</code>.</p>
+    <div class="box ok"><strong>✅ Phase 4 Complete!</strong>All 3 Python files created. Explorer should show: <code class="ic">alert_monitor.py</code>, <code class="ic">app.py</code>, <code class="ic">dashboard_data.py</code>, and <code class="ic">templates/</code> folder.</div>
+    <div class="screenshot">📸 Screenshot your VS Code Explorer showing all 3 files.</div>
+  </div>
+</div>
+
+<div class="nav-row">
+  <button class="nav-btn" onclick="go(3)">← Phase 3</button>
+  <button class="nav-btn p" onclick="go(5)">Phase 5: Dashboard HTML →</button>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     PHASE 5 — Dashboard HTML
+════════════════════════════════════════════════════ -->
+<div class="panel" id="ph5">
+<div class="ph-hero">
+  <div class="em">📊</div>
+  <div>
+    <h2>Phase 5 — Create the Live Dashboard HTML</h2>
+    <p>Create one HTML file inside the templates folder. It will show live charts, alert counts, and a table of recent attacks. Auto-refreshes every 30 seconds.</p>
+  </div>
+</div>
+
+<div class="action">
+  <div class="action-num">59</div>
+  <div class="action-body">
+    <div class="action-tag g">VS Code — Explorer Panel</div>
+    <h3>Click the "templates" folder in the Explorer to expand it</h3>
+    <p>In the left panel, click the <strong>templates</strong> folder to select it (make sure it is highlighted/selected).</p>
+  </div>
+</div>
+
+<div class="action">
+  <div class="action-num">60</div>
+  <div class="action-body">
+    <div class="action-tag g">VS Code — templates folder selected</div>
+    <h3>Create a new file inside templates called dashboard.html</h3>
+    <p>With <code class="ic">templates</code> folder selected, click the <strong>New File icon</strong> at the top of the Explorer panel. Type <code class="ic">dashboard.html</code> and press <strong>Enter</strong>. Make sure the file appears <em>inside</em> the templates folder in the explorer tree.</p>
+    <div class="box warn"><strong>⚠️ Must be inside templates/</strong>The file path must be <code class="ic">~/nids-project/templates/dashboard.html</code>. If it ended up in the root of nids-project, drag it into the templates folder.</div>
+  </div>
+</div>
+
+<div class="action">
+  <div class="action-num">61</div>
+  <div class="action-body">
+    <div class="action-tag g">VS Code — dashboard.html</div>
+    <h3>Paste the complete dashboard HTML</h3>
+    <p>Click inside the editor, then copy everything below and paste with <code class="ic">Ctrl+V</code>.</p>
+    <div class="code-block">
+      <div class="code-top"><span>templates/dashboard.html — COMPLETE FILE</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+      <pre>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+&lt;meta charset="UTF-8"&gt;
+&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+&lt;title&gt;NIDS Dashboard&lt;/title&gt;
+&lt;script src="https://cdn.jsdelivr.net/npm/chart.js"&gt;&lt;/script&gt;
+&lt;style&gt;
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#07090f;color:#dde3f5;font-family:'Segoe UI',sans-serif;font-size:15px;}
+header{background:#0d1017;padding:16px 28px;border-bottom:1px solid #1c2235;
+       display:flex;align-items:center;gap:14px;}
+.live{width:8px;height:8px;background:#34d399;border-radius:50%;animation:pulse 1.5s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.2}}
+header h1{font-size:1.15rem;font-weight:700;}
+.updated{margin-left:auto;font-size:12px;color:#5a6380;}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+       gap:14px;padding:22px 28px;}
+.stat{background:#0d1017;border:1px solid #1c2235;border-radius:10px;padding:18px 20px;text-align:center;}
+.stat .n{font-size:2.2rem;font-weight:700;color:#4c8cf8;}
+.stat.c .n{color:#f87171;}
+.stat.w .n{color:#fbbf24;}
+.stat.g .n{color:#34d399;}
+.stat .l{font-size:12px;color:#5a6380;margin-top:4px;}
+.refresh{display:inline-block;margin:0 28px 16px;padding:8px 20px;
+         background:#1c2235;border:1px solid #232a3e;border-radius:7px;
+         cursor:pointer;font-size:13px;color:#dde3f5;}
+.refresh:hover{background:#232a3e;}
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:0 28px 20px;}
+.card{background:#0d1017;border:1px solid #1c2235;border-radius:10px;padding:18px;}
+.card h3{font-size:11px;color:#5a6380;text-transform:uppercase;letter-spacing:.07em;margin-bottom:14px;}
+.tbl-wrap{margin:0 28px 28px;background:#0d1017;border:1px solid #1c2235;border-radius:10px;overflow:hidden;}
+.tbl-head{padding:12px 18px;border-bottom:1px solid #1c2235;font-size:11px;color:#5a6380;text-transform:uppercase;letter-spacing:.07em;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th{background:#07090f;padding:9px 14px;text-align:left;color:#5a6380;font-size:11px;text-transform:uppercase;}
+td{padding:9px 14px;border-top:1px solid #131720;}
+tr:hover td{background:rgba(255,255,255,.015);}
+.s1{color:#f87171;font-weight:700;}
+.s2{color:#fbbf24;font-weight:600;}
+.s3{color:#22d3ee;}
+.ts{font-family:monospace;font-size:12px;color:#5a6380;}
+.empty{text-align:center;padding:40px;color:#5a6380;font-size:13px;}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;header&gt;
+  &lt;div class="live"&gt;&lt;/div&gt;
+  &lt;h1&gt;Network Intrusion Detection System &amp;mdash; Live Dashboard&lt;/h1&gt;
+  &lt;span class="updated" id="upd"&gt;&lt;/span&gt;
+&lt;/header&gt;
+
+&lt;div class="stats"&gt;
+  &lt;div class="stat"&gt;&lt;div class="n" id="total"&gt;0&lt;/div&gt;&lt;div class="l"&gt;Total Alerts&lt;/div&gt;&lt;/div&gt;
+  &lt;div class="stat"&gt;&lt;div class="n" id="attackers"&gt;0&lt;/div&gt;&lt;div class="l"&gt;Unique Attackers&lt;/div&gt;&lt;/div&gt;
+  &lt;div class="stat c"&gt;&lt;div class="n" id="crit"&gt;0&lt;/div&gt;&lt;div class="l"&gt;Critical (Sev 1)&lt;/div&gt;&lt;/div&gt;
+  &lt;div class="stat w"&gt;&lt;div class="n" id="high"&gt;0&lt;/div&gt;&lt;div class="l"&gt;High (Sev 2)&lt;/div&gt;&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;button class="refresh" onclick="load()"&gt;&#8635; Refresh Now&lt;/button&gt;
+
+&lt;div class="charts"&gt;
+  &lt;div class="card"&gt;&lt;h3&gt;Top Attack Signatures&lt;/h3&gt;&lt;canvas id="sigC"&gt;&lt;/canvas&gt;&lt;/div&gt;
+  &lt;div class="card"&gt;&lt;h3&gt;Alerts by Category&lt;/h3&gt;&lt;canvas id="catC"&gt;&lt;/canvas&gt;&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div class="tbl-wrap"&gt;
+  &lt;div class="tbl-head"&gt;Recent Alerts (last 25)&lt;/div&gt;
+  &lt;table&gt;
+    &lt;thead&gt;&lt;tr&gt;
+      &lt;th&gt;Time&lt;/th&gt;&lt;th&gt;Source IP&lt;/th&gt;&lt;th&gt;Signature&lt;/th&gt;
+      &lt;th&gt;Severity&lt;/th&gt;&lt;th&gt;Category&lt;/th&gt;&lt;th&gt;Protocol&lt;/th&gt;
+    &lt;/tr&gt;&lt;/thead&gt;
+    &lt;tbody id="tb"&gt;&lt;tr&gt;&lt;td colspan="6" class="empty"&gt;Waiting for alerts...&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;
+  &lt;/table&gt;
+&lt;/div&gt;
+
+&lt;script&gt;
+let sc,cc;
+const CLRS=['#4c8cf8','#8b5cf6','#34d399','#fbbf24','#f87171','#22d3ee','#f472b6','#fb923c'];
+async function load(){
+  try{
+    const d=await fetch('/api/data').then(r=&gt;r.json());
+    document.getElementById('total').textContent    =d.total_alerts||0;
+    document.getElementById('attackers').textContent=d.unique_attackers||0;
+    document.getElementById('crit').textContent     =d.by_severity?.['1']||0;
+    document.getElementById('high').textContent     =d.by_severity?.['2']||0;
+    document.getElementById('upd').textContent      ='Updated: '+new Date().toLocaleTimeString();
+    const sL=(d.top_signatures||[]).map(s=&gt;(s[0]||'').substring(0,30));
+    const sV=(d.top_signatures||[]).map(s=&gt;s[1]);
+    if(sc)sc.destroy();
+    sc=new Chart(document.getElementById('sigC'),{
+      type:'bar',
+      data:{labels:sL,datasets:[{data:sV,backgroundColor:'#4c8cf8',borderRadius:4}]},
+      options:{indexAxis:'y',plugins:{legend:{display:false}},
+               scales:{x:{ticks:{color:'#5a6380'},grid:{color:'#131720'}},
+                       y:{ticks:{color:'#5a6380',font:{size:11}},grid:{color:'#131720'}}}}
+    });
+    const cL=(d.by_category||[]).map(c=&gt;c[0]||'Unknown');
+    const cV=(d.by_category||[]).map(c=&gt;c[1]);
+    if(cc)cc.destroy();
+    cc=new Chart(document.getElementById('catC'),{
+      type:'doughnut',
+      data:{labels:cL,datasets:[{data:cV,backgroundColor:CLRS}]},
+      options:{plugins:{legend:{labels:{color:'#dde3f5',font:{size:11}}}}}
+    });
+    const tb=document.getElementById('tb');
+    if(!d.recent_alerts||d.recent_alerts.length===0){
+      tb.innerHTML='&lt;tr&gt;&lt;td colspan="6" class="empty"&gt;No alerts yet. Run simulations in Phase 7.&lt;/td&gt;&lt;/tr&gt;';
+    }else{
+      tb.innerHTML='';
+      d.recent_alerts.forEach(a=&gt;{
+        const s=a.severity,cls=s==1?'s1':s==2?'s2':'s3';
+        const t=a.timestamp?new Date(a.timestamp).toLocaleTimeString():'';
+        tb.innerHTML+=`&lt;tr&gt;
+          &lt;td class="ts"&gt;${t}&lt;/td&gt;
+          &lt;td&gt;${a.src_ip||'—'}&lt;/td&gt;
+          &lt;td style="max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"&gt;${a.signature||'—'}&lt;/td&gt;
+          &lt;td class="${cls}"&gt;${s||'—'}&lt;/td&gt;
+          &lt;td&gt;${a.category||'—'}&lt;/td&gt;
+          &lt;td&gt;${a.proto||'—'}&lt;/td&gt;
+        &lt;/tr&gt;`;
+      });
+    }
+  }catch(e){console.error('Dashboard load error:',e);}
+}
+load();
+setInterval(load,30000);
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</pre>
+    </div>
+  </div>
+</div>
+
+<div class="action">
+  <div class="action-num">62</div>
+  <div class="action-body">
+    <div class="action-tag g">VS Code</div>
+    <h3>Save dashboard.html</h3>
+    <p>Press <code class="ic">Ctrl + S</code>. Check the Explorer — your file tree should now look exactly like this:</p>
+    <div class="code-block">
+      <div class="code-top"><span>VS Code Explorer should show</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+      <pre>NIDS-PROJECT
+├── alert_monitor.py
+├── app.py
+├── dashboard_data.py
+└── templates
+    └── dashboard.html</pre>
+    </div>
+    <div class="box ok"><strong>✅ Phase 5 Complete!</strong>All 4 files are created. Now we launch everything in Phase 6.</div>
+  </div>
+</div>
+
+<div class="nav-row">
+  <button class="nav-btn" onclick="go(4)">← Phase 4</button>
+  <button class="nav-btn p" onclick="go(6)">Phase 6: Launch Everything →</button>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     PHASE 6 — Launch
+════════════════════════════════════════════════════ -->
+<div class="panel" id="ph6">
+<div class="ph-hero">
+  <div class="em">🚀</div>
+  <div>
+    <h2>Phase 6 — Start the Full System</h2>
+    <p>You need to open <strong>3 separate Ubuntu terminal windows</strong> and run one thing in each. Keep all 3 running at the same time. Step-by-step for every click.</p>
+  </div>
+</div>
+
+<div class="section-title">Before starting — create log file permissions</div>
+
+<div class="action">
+  <div class="action-num">63</div>
+  <div class="action-body">
+    <div class="action-tag pu">Ubuntu Terminal (existing window)</div>
+    <h3>Create the Suricata log directory and fix permissions</h3>
+    <div class="code-block">
+      <div class="code-top"><span>Ubuntu Terminal</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+      <pre>sudo mkdir -p /var/log/suricata
+sudo chmod 755 /var/log/suricata
+sudo touch /var/log/suricata/eve.json
+sudo chmod 644 /var/log/suricata/eve.json</pre>
+    </div>
+  </div>
+</div>
+
+<div class="section-title">Terminal 1 — Suricata IDS Engine</div>
+
+<div class="action">
+  <div class="action-num">64</div>
+  <div class="action-body">
+    <div class="action-tag wh">🪟 Windows Start Menu</div>
+    <h3>Open a FIRST Ubuntu terminal window</h3>
+    <p>Press <strong>Windows key</strong> → type <code class="ic">Ubuntu</code> → click <strong>Ubuntu 22.04 LTS</strong>. Terminal window #1 opens.</p>
+  </div>
+</div>
+
+<div class="action">
+  <div class="action-num">65</div>
+  <div class="action-body">
+    <div class="action-tag pu">Terminal Window 1</div>
+    <h3>Start Suricata on your network interface</h3>
+    <p>Replace <code class="ic">eth0</code> with your actual interface name from step 26 if different.</p>
+    <div class="code-block">
+      <div class="code-top"><span>Terminal 1</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+      <pre>sudo suricata -c /etc/suricata/suricata.yaml -i eth0</pre>
+    </div>
+    <div class="see">Notice: suricata: This is Suricata version 7.x.x RELEASE
+...
+Notice: suricata: all engines started.</pre></div>
+    <div class="box ok"><strong>✅ Leave this terminal running.</strong>Do not close it. Suricata is now watching your network.</div>
+    <div class="box err"><strong>❌ If it exits immediately</strong>Run: <code class="ic">sudo suricata -c /etc/suricata/suricata.yaml -i eth0 -v 2>&amp;1 | head -30</code> to see the error. Most common cause: wrong interface name.</div>
+  </div>
+</div>
+
+<div class="section-title">Terminal 2 — Python Alert Monitor</div>
+
+<div class="action">
+  <div class="action-num">66</div>
+  <div class="action-body">
+    <div class="action-tag wh">🪟 Windows Taskbar</div>
+    <h3>Open a SECOND Ubuntu terminal window</h3>
+    <p>Look at your Windows taskbar. Right-click the Ubuntu icon → click <strong>New Window</strong>. A second Ubuntu terminal opens. Keep Terminal 1 running.</p>
+    <div class="box note"><strong>📌 Alternative</strong>You can also press <strong>Windows key</strong> → type Ubuntu → click it again to open a second instance.</div>
+  </div>
+</div>
+
+<div class="action">
+  <div class="action-num">67</div>
+  <div class="action-body">
+    <div class="action-tag pu">Terminal Window 2</div>
+    <h3>Go to your project folder</h3>
+    <div class="code-block">
+      <div class="code-top"><span>Terminal 2</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+      <pre>cd ~/nids-project</pre>
+    </div>
+  </div>
+</div>
+
+<div class="action">
+  <div class="action-num">68</div>
+  <div class="action-body">
+    <div class="action-tag pu">Terminal Window 2</div>
+    <h3>Start the alert monitor</h3>
+    <div class="code-block">
+      <div class="code-top"><span>Terminal 2</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+      <pre>python3 alert_monitor.py</pre>
+    </div>
+    <div class="see">Shield NIDS Monitor Running - Ctrl+C to stop</div>
+    <div class="box ok"><strong>✅ Leave this terminal running.</strong>Alerts will print here in real time with color coding.</div>
+    <div class="box err"><strong>❌ If you see "ModuleNotFoundError: watchdog"</strong>Open a third terminal, run: <code class="ic">pip3 install watchdog --break-system-packages</code>, then come back and run alert_monitor.py again.</div>
+  </div>
+</div>
+
+<div class="section-title">Terminal 3 — Flask Dashboard Server</div>
+
+<div class="action">
+  <div class="action-num">69</div>
+  <div class="action-body">
+    <div class="action-tag wh">🪟 Windows</div>
+    <h3>Open a THIRD Ubuntu terminal window</h3>
+    <p>Same as step 66 — right-click Ubuntu in taskbar → New Window. Or open Ubuntu again from Start menu.</p>
+  </div>
+</div>
+
+<div class="action">
+  <div class="action-num">70</div>
+  <div class="action-body">
+    <div class="action-tag pu">Terminal Window 3</div>
+    <h3>Go to your project folder</h3>
+    <div class="code-block">
+      <div class="code-top"><span>Terminal 3</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+      <pre>cd ~/nids-project</pre>
+    </div>
+  </div>
+</div>
+
+<div class="action">
+  <div class="action-num">71</div>
+  <div class="action-body">
+    <div class="action-tag pu">Terminal Window 3</div>
+    <h3>Start Flask</h3>
+    <div class="code-block">
+      <div class="code-top"><span>Terminal 3</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+      <pre>python3 app.py</pre>
+    </div>
+    <div class="see"> * Serving Flask app 'app'
+ * Debug mode: on
+ * Running on http://0.0.0.0:5000
+ * Running on http://127.0.0.1:5000</div>
+    <div class="box ok"><strong>✅ Leave this terminal running.</strong>Flask is now serving the dashboard.</div>
+  </div>
+</div>
+
+<div class="section-title">Open the dashboard in your browser</div>
+
+<div class="action">
+  <div class="action-num">72</div>
+  <div class="action-body">
+    <div class="action-tag wh">🌐 Windows — Chrome or Edge</div>
+    <h3>Open your browser and go to localhost:5000</h3>
+    <p>Click on Chrome or Edge in your Windows taskbar. In the address bar at the top, type or paste this and press Enter:</p>
+    <div class="code-block">
+      <div class="code-top"><span>Browser address bar</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+      <pre>http://localhost:5000</pre>
+    </div>
+    <div class="see">The NIDS Dashboard page loads showing:
+- "Network Intrusion Detection System - Live Dashboard" header
+- Stats cards showing 0 0 0 0 (no alerts yet - that's normal)
+- Empty charts and table saying "Waiting for alerts..."</pre></div>
+    <div class="box ok"><strong>✅ Phase 6 Complete! The system is live.</strong>Now move to Phase 7 to simulate attacks and fill the dashboard with real data.</div>
+    <div class="screenshot">📸 Screenshot all 3 terminals side by side + the browser dashboard.</div>
+  </div>
+</div>
+
+<div class="nav-row">
+  <button class="nav-btn" onclick="go(5)">← Phase 5</button>
+  <button class="nav-btn p" onclick="go(7)">Phase 7: Simulate Attacks →</button>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     PHASE 7 — Simulate Attacks
+════════════════════════════════════════════════════ -->
+<div class="panel" id="ph7">
+<div class="ph-hero">
+  <div class="em">🧪</div>
+  <div>
+    <h2>Phase 7 — Simulate Attacks &amp; Verify Detection</h2>
+    <p>Run real attack simulations against your own machine to trigger alerts. Watch them appear in Terminal 2 and on the dashboard in real time. You need a 4th terminal window for this.</p>
+  </div>
+</div>
+
+<div class="action">
+  <div class="action-num">73</div>
+  <div class="action-body">
+    <div class="action-tag wh">🪟 Windows</div>
+    <h3>Open a FOURTH Ubuntu terminal window for running attacks</h3>
+    <p>Right-click Ubuntu in taskbar → New Window. This is your "attack terminal". Terminals 1, 2, and 3 stay running.</p>
+  </div>
+</div>
+
+<div class="action">
+  <div class="action-num">74</div>
+  <div class="action-body">
+    <div class="action-tag pu">Terminal 4 — Attack Terminal</div>
+    <h3>Install testing tools (nmap and hping3)</h3>
+    <div class="code-block">
+      <div class="code-top"><span>Terminal 4</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+      <pre>sudo apt install nmap hping3 -y</pre>
+    </div>
+    <div class="see">Setting up nmap ...
+Setting up hping3 ...</div>
+  </div>
+</div>
+
+<div class="section-title">Attack Test 1 — Ping Flood</div>
+
+<div class="action">
+  <div class="action-num">75</div>
+  <div class="action-body">
+    <div class="action-tag r">Attack Terminal 4</div>
+    <h3>Run a rapid ping flood to trigger Rule 1</h3>
+    <div class="code-block">
+      <div class="code-top"><span>Terminal 4</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+      <pre>ping -c 50 -i 0.05 127.0.0.1</pre>
+    </div>
+    <p>Then immediately look at <strong>Terminal 2</strong> (alert monitor). You should see colored alert output.</p>
+    <div class="see" style="color:#fbbf24">======================================================
+  ALERT  |  Severity: 2
+  Time   : 2024-xx-xxTxx:xx:xx
+  Source : 127.0.0.1:
+  Rule   : ICMP Ping Flood Detected
+  Cat    : Generic Protocol Command Decode
+======================================================</div>
+  </div>
+</div>
+
+<div class="section-title">Attack Test 2 — Port Scan</div>
+
+<div class="action">
+  <div class="action-num">76</div>
+  <div class="action-body">
+    <div class="action-tag r">Attack Terminal 4</div>
+    <h3>Run a TCP SYN port scan to trigger Rule 2</h3>
+    <div class="code-block">
+      <div class="code-top"><span>Terminal 4</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+      <pre>sudo nmap -sS -p 1-1000 127.0.0.1</pre>
+    </div>
+    <p>Watch Terminal 2 for: <code class="ic">TCP Port Scan Detected</code></p>
+  </div>
+</div>
+
+<div class="section-title">Attack Test 3 — SSH Brute Force</div>
+
+<div class="action">
+  <div class="action-num">77</div>
+  <div class="action-body">
+    <div class="action-tag r">Attack Terminal 4</div>
+    <h3>Simulate SSH brute force (rapid connection attempts)</h3>
+    <div class="code-block">
+      <div class="code-top"><span>Terminal 4</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+      <pre>for i in {1..10}; do ssh -o ConnectTimeout=1 -o StrictHostKeyChecking=no root@127.0.0.1 2>/dev/null; done</pre>
+    </div>
+    <p>Watch Terminal 2 for: <code class="ic">SSH Brute Force Attempt</code></p>
+  </div>
+</div>
+
+<div class="section-title">Attack Test 4 — SQL Injection via HTTP</div>
+
+<div class="action">
+  <div class="action-num">78</div>
+  <div class="action-body">
+    <div class="action-tag r">Attack Terminal 4 — Part A</div>
+    <h3>Start a quick HTTP test server on port 80</h3>
+    <p>Open a <strong>FIFTH terminal</strong> (or use any free terminal) and run:</p>
+    <div class="code-block">
+      <div class="code-top"><span>Fifth terminal — test web server</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+      <pre>sudo python3 -m http.server 80</pre>
+    </div>
+  </div>
+</div>
+
+<div class="action">
+  <div class="action-num">79</div>
+  <div class="action-body">
+    <div class="action-tag r">Attack Terminal 4 — Part B</div>
+    <h3>Send SQL injection payloads</h3>
+    <div class="code-block">
+      <div class="code-top"><span>Terminal 4</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+      <pre>curl "http://127.0.0.1/login?u=%27%20OR%20%271%27%3D%271"
+curl "http://127.0.0.1/items?id=1%20UNION%20SELECT%20*%20FROM%20users"</pre>
+    </div>
+    <p>Watch Terminal 2 for SQL injection alerts.</p>
+  </div>
+</div>
+
+<div class="section-title">Verify on Dashboard</div>
+
+<div class="action">
+  <div class="action-num">80</div>
+  <div class="action-body">
+    <div class="action-tag wh">🌐 Browser — localhost:5000</div>
+    <h3>Go back to your dashboard and click "Refresh Now"</h3>
+    <p>Click your browser window. Press <strong>F5</strong> or click the <strong>&#8635; Refresh Now</strong> button on the dashboard page.</p>
+    <p>You should now see:</p>
+    <div class="see">- Total Alerts: [number > 0]
+- Unique Attackers: 1 (your own machine)
+- Charts are populated with bars and sections
+- Recent Alerts table shows your attack types with timestamps</div>
+    <div class="box ok"><strong>✅ System fully working end-to-end!</strong>Traffic → Suricata → eve.json → Python → Dashboard. All 5 internship tasks are complete.</div>
+    <div class="screenshot">📸 Screenshot the dashboard with populated charts and alert table — this is your most important submission screenshot.</div>
+    <div class="screenshot">📸 Screenshot Terminal 2 showing colored alert output from your simulations.</div>
+  </div>
+</div>
+
+<div class="action">
+  <div class="action-num">81</div>
+  <div class="action-body">
+    <div class="action-tag pu">Ubuntu Terminal (any)</div>
+    <h3>Also check the raw Suricata logs directly</h3>
+    <div class="code-block">
+      <div class="code-top"><span>Any Terminal</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+      <pre># Quick text-format log
+sudo cat /var/log/suricata/fast.log
+
+# JSON format (pretty printed)
+sudo cat /var/log/suricata/eve.json | python3 -m json.tool | grep -A2 '"event_type": "alert"'</pre>
+    </div>
+    <div class="screenshot">📸 Screenshot of fast.log showing alert entries.</div>
+  </div>
+</div>
+
+<div class="nav-row">
+  <button class="nav-btn" onclick="go(6)">← Phase 6</button>
+  <button class="nav-btn p" onclick="go(8)">Phase 8: Troubleshooting →</button>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     PHASE 8 — Troubleshoot
+════════════════════════════════════════════════════ -->
+<div class="panel" id="ph8">
+<div class="ph-hero">
+  <div class="em">🔧</div>
+  <div>
+    <h2>Phase 8 — Troubleshooting &amp; Final Submission</h2>
+    <p>If something isn't working, find your exact error below and follow the fix. Then review the final submission checklist.</p>
+  </div>
+</div>
+
+<div class="section-title">Error fixes</div>
+
+<div class="action">
+  <div class="action-num">—</div>
+  <div class="action-body">
+    <div class="action-tag r">Error</div>
+    <h3>"suricata: command not found"</h3>
+    <div class="code-block"><div class="code-top"><span>Fix</span><button class="copy-btn" onclick="cp(this)">Copy</button></div><pre>sudo add-apt-repository ppa:oisf/suricata-stable -y && sudo apt update && sudo apt install suricata -y</pre></div>
+  </div>
+</div>
+
+<div class="action">
+  <div class="action-num">—</div>
+  <div class="action-body">
+    <div class="action-tag r">Error</div>
+    <h3>Suricata starts then immediately exits</h3>
+    <div class="code-block"><div class="code-top"><span>Fix — see detailed error</span><button class="copy-btn" onclick="cp(this)">Copy</button></div><pre>sudo suricata -c /etc/suricata/suricata.yaml -i eth0 -v 2>&1 | head -50</pre></div>
+    <p style="font-size:13px;color:var(--muted2);margin-top:8px;">Look for lines starting with <code class="ic">Error:</code>. Most common causes: wrong interface name, or YAML indentation error. Fix accordingly.</p>
+  </div>
+</div>
+
+<div class="action">
+  <div class="action-num">—</div>
+  <div class="action-body">
+    <div class="action-tag r">Error</div>
+    <h3>"ModuleNotFoundError: No module named 'flask'" or 'watchdog'</h3>
+    <div class="code-block"><div class="code-top"><span>Fix</span><button class="copy-btn" onclick="cp(this)">Copy</button></div><pre>pip3 install flask watchdog pandas --break-system-packages</pre></div>
+  </div>
+</div>
+
+<div class="action">
+  <div class="action-num">—</div>
+  <div class="action-body">
+    <div class="action-tag r">Error</div>
+    <h3>Dashboard shows all zeros even after simulations</h3>
+    <div class="code-block"><div class="code-top"><span>Fix — check if log file has content</span><button class="copy-btn" onclick="cp(this)">Copy</button></div><pre># Check if alerts are being written to log
+sudo wc -l /var/log/suricata/eve.json
+
+# If 0 or file missing, check Suricata is running:
+ps aux | grep suricata
+
+# Check Suricata log for errors:
+sudo tail -20 /var/log/suricata/suricata.log</pre></div>
+  </div>
+</div>
+
+<div class="action">
+  <div class="action-num">—</div>
+  <div class="action-body">
+    <div class="action-tag r">Error</div>
+    <h3>"TemplateNotFound: dashboard.html"</h3>
+    <div class="code-block"><div class="code-top"><span>Fix — verify file structure</span><button class="copy-btn" onclick="cp(this)">Copy</button></div><pre># Make sure you're in the right folder and file exists
+cd ~/nids-project
+ls templates/
+# Must show: dashboard.html
+
+# Run Flask from the correct directory
+python3 app.py</pre></div>
+  </div>
+</div>
+
+<div class="action">
+  <div class="action-num">—</div>
+  <div class="action-body">
+    <div class="action-tag r">Error</div>
+    <h3>"Permission denied" reading /var/log/suricata/</h3>
+    <div class="code-block"><div class="code-top"><span>Fix</span><button class="copy-btn" onclick="cp(this)">Copy</button></div><pre>sudo chmod 755 /var/log/suricata/
+sudo chmod 644 /var/log/suricata/eve.json
+sudo chmod 644 /var/log/suricata/fast.log</pre></div>
+  </div>
+</div>
+
+<div class="action">
+  <div class="action-num">—</div>
+  <div class="action-body">
+    <div class="action-tag r">Error</div>
+    <h3>"Address already in use" when starting Flask</h3>
+    <div class="code-block"><div class="code-top"><span>Fix — kill existing process on port 5000</span><button class="copy-btn" onclick="cp(this)">Copy</button></div><pre>kill $(lsof -t -i:5000) 2>/dev/null; python3 app.py</pre></div>
+  </div>
+</div>
+
+<div class="section-title">Final Submission Checklist</div>
+
+<div class="action">
+  <div class="action-num">✓</div>
+  <div class="action-body">
+    <div class="action-tag g">Submission</div>
+    <h3>Screenshots to include in your report</h3>
+    <p>Collect all these screenshots before submitting:</p>
+    <div class="code-block">
+      <div class="code-top"><span>Screenshots checklist</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+      <pre>1. suricata --version output in terminal
+2. "all engines started" in Terminal 1
+3. Terminal 2 showing colored alert output  ← most important
+4. Dashboard at localhost:5000 with charts populated  ← most important
+5. VS Code showing local.rules with your 10 custom rules
+6. VS Code Explorer showing all 4 project files
+7. fast.log or eve.json content in terminal
+8. suricata-update output showing "Loaded X rules"</pre>
+    </div>
+  </div>
+</div>
+
+<div class="action">
+  <div class="action-num">✓</div>
+  <div class="action-body">
+    <div class="action-tag g">Submission</div>
+    <h3>Task Coverage — map each task to what you built</h3>
+    <div class="code-block">
+      <div class="code-top"><span>For your report</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+      <pre>Task 1: Set up NIDS
+  → Suricata installed via PPA, configured with suricata.yaml
+  → Phase 1 and 2
+
+Task 2: Configure rules and alerts
+  → 10 custom rules in local.rules + 45,000 ET Open rules
+  → Phase 3
+
+Task 3: Monitor network traffic continuously
+  → Suricata running live on eth0 + alert_monitor.py watching eve.json
+  → Phase 6, alert_monitor.py
+
+Task 4: Implement response mechanisms
+  → block_ip() in alert_monitor.py uses iptables to block Severity 1 IPs
+  → response_log.txt records all blocked IPs with timestamps
+  → Phase 4
+
+Task 5: Visualize detected attacks
+  → Flask web dashboard at localhost:5000
+  → Live bar chart (top signatures), doughnut chart (categories)
+  → Alert table with severity color coding
+  → Phase 5</pre>
+    </div>
+    <div class="box ok"><strong>✅ All Done! Your NIDS is complete.</strong>You've built a fully functional Network Intrusion Detection System on Windows — from scratch. Well done!</div>
+  </div>
+</div>
+
+<div class="nav-row">
+  <button class="nav-btn" onclick="go(7)">← Phase 7</button>
+  <button class="nav-btn" disabled>🎉 Project Complete!</button>
+</div>
+</div>
+
+</main>
+</div>
+
+<script>
+const PHASES=[
+  {id:1,label:"Environment Setup",    col:"b"},
+  {id:2,label:"Configure Suricata",   col:"pu"},
+  {id:3,label:"Detection Rules",      col:"g"},
+  {id:4,label:"Python Files",         col:"a"},
+  {id:5,label:"Dashboard HTML",       col:"c"},
+  {id:6,label:"Launch System",        col:"pk"},
+  {id:7,label:"Simulate Attacks",     col:"r"},
+  {id:8,label:"Troubleshoot & Submit",col:"wh"},
+];
+const TITLES=["Environment Setup","Configure Suricata","Detection Rules","Python Files","Dashboard HTML","Launch System","Simulate Attacks","Troubleshoot & Submit"];
+
+let cur=1;
+
+function buildNav(){
+  const el=document.getElementById('phaseList');
+  PHASES.forEach(p=>{
+    const d=document.createElement('div');
+    d.className='ph-item'+(p.id===1?' active':'');
+    d.id='nav'+p.id;
+    d.onclick=()=>go(p.id);
+    d.innerHTML=`<div class="ph-num ${p.col}">${p.id}</div><div class="ph-label">${p.label}</div>`;
+    el.appendChild(d);
+  });
+}
+
+function go(n){
+  document.getElementById('ph'+cur).classList.remove('active');
+  document.getElementById('nav'+cur).classList.remove('active');
+  cur=n;
+  document.getElementById('ph'+n).classList.add('active');
+  document.getElementById('nav'+n).classList.add('active');
+  document.getElementById('tbBadge').textContent='Phase '+n;
+  document.getElementById('tbTitle').textContent=TITLES[n-1];
+  document.getElementById('tbCount').textContent='Phase '+n+' of 8';
+  const colors=['b','pu','g','a','c','pk','r','wh'];
+  document.getElementById('tbBadge').className='tb-phase '+colors[n-1];
+  window.scrollTo(0,0);
+}
+
+function cp(btn){
+  const pre=btn.closest('.code-block').querySelector('pre');
+  navigator.clipboard.writeText(pre.innerText).then(()=>{
+    const o=btn.textContent;
+    btn.textContent='✓ Copied';btn.style.color='#34d399';
+    setTimeout(()=>{btn.textContent=o;btn.style.color='';},1500);
+  });
+}
+
+// progress tracking via scroll/interaction (visual only)
+function updateProg(){
+  const panels=document.querySelectorAll('.panel');
+  const prog=((cur-1)/7)*100;
+  document.getElementById('progFill').style.width=prog+'%';
+  document.getElementById('pct').textContent=Math.round(prog)+'%';
+}
+document.addEventListener('click',()=>setTimeout(updateProg,100));
+
+buildNav();
+updateProg();
+</script>
+</body>
+</html>
