@@ -43,17 +43,13 @@ Run from 4th terminal: ping -c 50 -i 0.05 127.0.0.1 && sudo nmap -sS -p 1-1000 1
 
 suricata: command not found -> sudo apt install suricata -y. WSL version 1 -> wsl --set-version Ubuntu-22.04 2. Permission denied on eve.json -> sudo chmod 644 /var/log/suricata/eve.json. Flask port in use -> kill $(lsof -t -i:5000). TemplateNotFound error -> Run Flask from ~/nids-project.
 
-## Screenshots for Submission
-
-suricata --version output, Terminal 1 showing all engines started, Terminal 2 showing colored alerts, Dashboard with populated charts, VS Code showing local.rules, Project file structure, fast.log content, suricata-update output
-
 ## Task Completion
 
 Set up NIDS environment: Complete. Configure rules and alerts: Complete. Monitor network traffic: Complete. Implement response mechanisms: Complete. Visualize detected attacks: Complete.
 
 ## Author
-
-Cybersecurity Internship Project
+Pritiviraj Murthy Pechetty
+  - Cybersecurity Internship Project
 
 ## License
 
