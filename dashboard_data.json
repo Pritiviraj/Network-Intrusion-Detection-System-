@@ -1,0 +1,211 @@
+{
+  "generated_at": "2026-05-22 13:43:58.361351",
+  "total_alerts": 18,
+  "unique_attackers": 1,
+  "top_signatures": [
+    [
+      "ET INFO GNU/Linux APT User-Agent Outbound likely related to package management",
+      18
+    ]
+  ],
+  "top_src_ips": [
+    [
+      "172.26.159.135",
+      18
+    ]
+  ],
+  "by_category": [
+    [
+      "Not Suspicious Traffic",
+      18
+    ]
+  ],
+  "by_severity": {
+    "3": 18
+  },
+  "by_protocol": {
+    "TCP": 18
+  },
+  "recent_alerts": [
+    {
+      "timestamp": "2026-05-22T13:36:59.810511+0530",
+      "src_ip": "172.26.159.135",
+      "dest_ip": "172.66.152.176",
+      "dest_port": 80,
+      "proto": "TCP",
+      "signature": "ET INFO GNU/Linux APT User-Agent Outbound likely related to package management",
+      "severity": 3,
+      "category": "Not Suspicious Traffic"
+    },
+    {
+      "timestamp": "2026-05-22T13:36:57.760826+0530",
+      "src_ip": "172.26.159.135",
+      "dest_ip": "172.66.152.176",
+      "dest_port": 80,
+      "proto": "TCP",
+      "signature": "ET INFO GNU/Linux APT User-Agent Outbound likely related to package management",
+      "severity": 3,
+      "category": "Not Suspicious Traffic"
+    },
+    {
+      "timestamp": "2026-05-22T13:36:57.453423+0530",
+      "src_ip": "172.26.159.135",
+      "dest_ip": "172.66.152.176",
+      "dest_port": 80,
+      "proto": "TCP",
+      "signature": "ET INFO GNU/Linux APT User-Agent Outbound likely related to package management",
+      "severity": 3,
+      "category": "Not Suspicious Traffic"
+    },
+    {
+      "timestamp": "2026-05-22T13:36:57.189028+0530",
+      "src_ip": "172.26.159.135",
+      "dest_ip": "172.66.152.176",
+      "dest_port": 80,
+      "proto": "TCP",
+      "signature": "ET INFO GNU/Linux APT User-Agent Outbound likely related to package management",
+      "severity": 3,
+      "category": "Not Suspicious Traffic"
+    },
+    {
+      "timestamp": "2026-05-22T13:36:55.122061+0530",
+      "src_ip": "172.26.159.135",
+      "dest_ip": "104.20.28.246",
+      "dest_port": 80,
+      "proto": "TCP",
+      "signature": "ET INFO GNU/Linux APT User-Agent Outbound likely related to package management",
+      "severity": 3,
+      "category": "Not Suspicious Traffic"
+    },
+    {
+      "timestamp": "2026-05-22T13:36:53.420913+0530",
+      "src_ip": "172.26.159.135",
+      "dest_ip": "104.20.28.246",
+      "dest_port": 80,
+      "proto": "TCP",
+      "signature": "ET INFO GNU/Linux APT User-Agent Outbound likely related to package management",
+      "severity": 3,
+      "category": "Not Suspicious Traffic"
+    },
+    {
+      "timestamp": "2026-05-22T13:36:53.420913+0530",
+      "src_ip": "172.26.159.135",
+      "dest_ip": "104.20.28.246",
+      "dest_port": 80,
+      "proto": "TCP",
+      "signature": "ET INFO GNU/Linux APT User-Agent Outbound likely related to package management",
+      "severity": 3,
+      "category": "Not Suspicious Traffic"
+    },
+    {
+      "timestamp": "2026-05-22T13:36:53.395356+0530",
+      "src_ip": "172.26.159.135",
+      "dest_ip": "104.20.28.246",
+      "dest_port": 80,
+      "proto": "TCP",
+      "signature": "ET INFO GNU/Linux APT User-Agent Outbound likely related to package management",
+      "severity": 3,
+      "category": "Not Suspicious Traffic"
+    },
+    {
+      "timestamp": "2026-05-22T13:36:52.988551+0530",
+      "src_ip": "172.26.159.135",
+      "dest_ip": "104.20.28.246",
+      "dest_port": 80,
+      "proto": "TCP",
+      "signature": "ET INFO GNU/Linux APT User-Agent Outbound likely related to package management",
+      "severity": 3,
+      "category": "Not Suspicious Traffic"
+    },
+    {
+      "timestamp": "2026-05-22T13:36:52.728748+0530",
+      "src_ip": "172.26.159.135",
+      "dest_ip": "104.20.28.246",
+      "dest_port": 80,
+      "proto": "TCP",
+      "signature": "ET INFO GNU/Linux APT User-Agent Outbound likely related to package management",
+      "severity": 3,
+      "category": "Not Suspicious Traffic"
+    },
+    {
+      "timestamp": "2026-05-22T13:31:41.413249+0530",
+      "src_ip": "172.26.159.135",
+      "dest_ip": "172.66.152.176",
+      "dest_port": 80,
+      "proto": "TCP",
+      "signature": "ET INFO GNU/Linux APT User-Agent Outbound likely related to package management",
+      "severity": 3,
+      "category": "Not Suspicious Traffic"
+    },
+    {
+      "timestamp": "2026-05-22T13:31:41.413249+0530",
+      "src_ip": "172.26.159.135",
+      "dest_ip": "172.66.152.176",
+      "dest_port": 80,
+      "proto": "TCP",
+      "signature": "ET INFO GNU/Linux APT User-Agent Outbound likely related to package management",
+      "severity": 3,
+      "category": "Not Suspicious Traffic"
+    },
+    {
+      "timestamp": "2026-05-22T13:31:41.413249+0530",
+      "src_ip": "172.26.159.135",
+      "dest_ip": "172.66.152.176",
+      "dest_port": 80,
+      "proto": "TCP",
+      "signature": "ET INFO GNU/Linux APT User-Agent Outbound likely related to package management",
+      "severity": 3,
+      "category": "Not Suspicious Traffic"
+    },
+    {
+      "timestamp": "2026-05-22T13:31:41.413249+0530",
+      "src_ip": "172.26.159.135",
+      "dest_ip": "172.66.152.176",
+      "dest_port": 80,
+      "proto": "TCP",
+      "signature": "ET INFO GNU/Linux APT User-Agent Outbound likely related to package management",
+      "severity": 3,
+      "category": "Not Suspicious Traffic"
+    },
+    {
+      "timestamp": "2026-05-22T13:31:41.413249+0530",
+      "src_ip": "172.26.159.135",
+      "dest_ip": "172.66.152.176",
+      "dest_port": 80,
+      "proto": "TCP",
+      "signature": "ET INFO GNU/Linux APT User-Agent Outbound likely related to package management",
+      "severity": 3,
+      "category": "Not Suspicious Traffic"
+    },
+    {
+      "timestamp": "2026-05-22T13:31:41.413249+0530",
+      "src_ip": "172.26.159.135",
+      "dest_ip": "172.66.152.176",
+      "dest_port": 80,
+      "proto": "TCP",
+      "signature": "ET INFO GNU/Linux APT User-Agent Outbound likely related to package management",
+      "severity": 3,
+      "category": "Not Suspicious Traffic"
+    },
+    {
+      "timestamp": "2026-05-22T13:31:41.413249+0530",
+      "src_ip": "172.26.159.135",
+      "dest_ip": "172.66.152.176",
+      "dest_port": 80,
+      "proto": "TCP",
+      "signature": "ET INFO GNU/Linux APT User-Agent Outbound likely related to package management",
+      "severity": 3,
+      "category": "Not Suspicious Traffic"
+    },
+    {
+      "timestamp": "2026-05-22T13:31:40.823360+0530",
+      "src_ip": "172.26.159.135",
+      "dest_ip": "172.66.152.176",
+      "dest_port": 80,
+      "proto": "TCP",
+      "signature": "ET INFO GNU/Linux APT User-Agent Outbound likely related to package management",
+      "severity": 3,
+      "category": "Not Suspicious Traffic"
+    }
+  ]
+}
