@@ -284,7 +284,9 @@ Task 5 - Visualize detected attacks: Complete
 
 ================================================================================
 
-Author: Cybersecurity Internship Project
+Author:
+Pritiviraj Murthy Pechetty
+  - Cybersecurity Internship Project
 
 License: Educational Use Only
 
